@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Catalogue</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .book-list {
+            max-width: 800px;
+            margin: 0 auto;
+            display: grid;
+            gap: 20px;
+        }
+
+        .book-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 25px 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 5px solid #667eea;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .book-id {
+            display: inline-block;
+            background: #667eea;
+            color: #fff;
+            font-size: 0.8rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+
+        .book-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .book-author {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .book-author span {
+            font-weight: 600;
+            color: #444;
+        }
+
+        .book-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #764ba2;
+        }
+
+        .loading {
+            text-align: center;
+            color: #fff;
+            font-size: 1.2rem;
+            padding: 40px;
+        }
+
+        .error {
+            text-align: center;
+            color: #ff6b6b;
+            font-size: 1.2rem;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📚 Book Catalogue</h1>
+    <div class="book-list" id="bookList">
+        <div class="loading">Loading books...</div>
+    </div>
+
+    <script>
+        // ---- 使用 fetch API 获取 XML 数据 ----
+        fetch('book.xml')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(xmlText => {
+                // ---- 使用 DOMParser 解析 XML 字符串 ----
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+
+                // 检查解析错误
+                const parseError = xmlDoc.querySelector('parsererror');
+                if (parseError) {
+                    throw new Error('XML parsing error');
+                }
+
+                // ---- 获取所有 book 节点 ----
+                const books = xmlDoc.getElementsByTagName('book');
+                const bookList = document.getElementById('bookList');
+                bookList.innerHTML = '';  // 清空 loading
+
+                // ---- 遍历并展示每本书 ----
+                for (let i = 0; i < books.length; i++) {
+                    const book = books[i];
+                    const id = book.getAttribute('id');
+                    const title = book.getElementsByTagName('title')[0].textContent;
+                    const author = book.getElementsByTagName('author')[0].textContent;
+                    const price = book.getElementsByTagName('price')[0].textContent;
+
+                    // 创建卡片
+                    const card = document.createElement('div');
+                    card.className = 'book-card';
+                    card.innerHTML = `
+                        <div class="book-id">Book #${id}</div>
+                        <div class="book-title">${title}</div>
+                        <div class="book-author"><span>Author:</span> ${author}</div>
+                        <div class="book-price">$${price}</div>
+                    `;
+                    bookList.appendChild(card);
+                }
+            })
+            .catch(error => {
+                const bookList = document.getElementById('bookList');
+                bookList.innerHTML = `<div class="error">Error loading XML: ${error.message}</div>`;
+                console.error('Error:', error);
+            });
+    </script>
+
+</body>
+</html>
